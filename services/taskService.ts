@@ -1,5 +1,6 @@
 import { Task } from '../models/Task';
 import { Document, Schema } from 'mongoose';
+import appEmitter from '../utils/events';
 
 // the interface can be moved to a separate file for simplicity we will keep it here
 export interface ITask extends Document {
@@ -16,6 +17,10 @@ export const createTask = async (taskData: ITask) => {
   try {
     const task = new Task(taskData);
     await task.save();
+
+    // for logging events
+    appEmitter.emit('taskCreated', task);
+
     return task;
   } catch (error) {
     throw error;
@@ -26,6 +31,10 @@ export const getAllTasks = async () => {
   try {
     // to populate the referece ids
     const tasks = await Task.find().populate('assignedTo').populate('project');
+
+    // for logging events
+    appEmitter.emit('tasksRetrieved', tasks);
+
     return tasks;
   } catch (error) {
     throw error;
@@ -40,6 +49,10 @@ export const getTaskById = async (id: string) => {
     if (!task) {
       throw new Error('Task not found');
     }
+
+    // for logging events
+    appEmitter.emit('taskRetrieved', task);
+
     return task;
   } catch (error) {
     throw error;
@@ -72,6 +85,10 @@ export const updateTask = async (id: string, updates: Partial<ITask>) => {
     if (!task) {
       throw new Error('Task not found');
     }
+
+    // for logging events
+    appEmitter.emit('taskUpdated', task);
+
     return task;
   } catch (error) {
     throw error;
@@ -84,6 +101,10 @@ export const deleteTask = async (id: string) => {
     if (!task) {
       throw new Error('Task not found');
     }
+
+    // for logging events
+    appEmitter.emit('taskDeleted', task);
+
     return task;
   } catch (error) {
     throw error;

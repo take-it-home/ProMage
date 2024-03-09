@@ -25,3 +25,5 @@ especially when we don't have transactions in our system
 **Pros**: Simple to work with, Schema-less so allows flexibility in data structure, performant for real-time applications, scalable
 
 **Cons**: Not suitable for complex transactions and relationships
+
+Event emitting: currently we used appEmitter for simplicity and demo purposes. In production my preference will be a more sphisticated message broker
