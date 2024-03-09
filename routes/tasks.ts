@@ -1,86 +1,87 @@
 import { Router } from 'express';
-import { Task } from '../models/Task';
+import * as taskService from '../services/taskService';
+import { validateTask } from '../middleware/validateReqMiddleware';
+import { verifyToken } from '../middleware/authMiddleware';
 
 const router = Router();
 
 // create a new task
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, validateTask, async (req, res) => {
   try {
-    const task = new Task(req.body);
-    await task.save();
-    res.status(201).send(task);
+    const task = await taskService.createTask(req.body);
+    res.status(201).json(task);
   } catch (error) {
-    res.status(400).send(error);
+    if (error instanceof Error) {
+      res.status(400).json({ error: error.message });
+    } else {
+      res.status(400).json({ error: 'An unknown error occurred' });
+    }
   }
 });
 
 // get all tasks
-router.get('/', async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
-    const tasks = await Task.find();
+    const tasks = await taskService.getAllTasks();
     res.send(tasks);
   } catch (error) {
-    res.status(500).send(error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'An unknown error occurred' });
+    }
   }
 });
 
 // get by id
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id);
+    const task = await taskService.getTaskById(req.params.id);
     if (!task) {
       return res.status(404).send();
     }
     res.send(task);
   } catch (error) {
-    res.status(500).send(error);
+    if (error instanceof Error) {
+      res.status(500).send(error);
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'An unknown error occurred' });
+    }
   }
 });
 
 // update by id
-router.patch('/:id', async (req, res) => {
-  const updates = Object.keys(req.body);
-  const allowedUpdates = [
-    'name',
-    'description',
-    'startDate',
-    'endDate',
-    'status',
-    'assignedTo',
-    'project',
-  ];
-  const isValidOperation = updates.every((update) =>
-    allowedUpdates.includes(update)
-  );
-
-  if (!isValidOperation) {
-    return res.status(400).send({ error: 'Invalid updates!' });
-  }
-
+router.patch('/:id', verifyToken, async (req, res) => {
   try {
-    const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const task = await taskService.updateTask(req.params.id, req.body);
     if (!task) {
       return res.status(404).send();
     }
     res.send(task);
   } catch (error) {
-    res.status(400).send(error);
+    if (error instanceof Error) {
+      res.status(400).send({ error: error.message });
+    } else {
+      res.status(400).send({ error: 'An unknown error occurred' });
+    }
   }
 });
 
-// del by id
-router.delete('/:id', async (req, res) => {
+// delete by id
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const task = await taskService.deleteTask(req.params.id);
     if (!task) {
       return res.status(404).send();
     }
     res.send(task);
   } catch (error) {
-    res.status(500).send(error);
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+    } else {
+      res.status(500).json({ error: 'An unknown error occurred' });
+    }
   }
 });
 
