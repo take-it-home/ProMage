@@ -14,7 +14,8 @@ other subsystems.
 
 1. Clone the repository.
 2. Install the dependencies.
-3. Run the project.
+3. Run the project (dev server): `pnpm run dev`
+4. Run tests `pnpm run test`
 
 ## Notes
 
